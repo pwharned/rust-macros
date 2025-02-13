@@ -1,8 +1,9 @@
 use parse::{
-    cascade, column, comma_sep, constraint, create_table_parser, foreign_key, function, match_char,
-    match_string, name, with_whitespace, ForeignKey, ParseError, Parser,
+    build_table_hierarchy, joins_parser,
+    alter_table_add_column_parser, cascade,select_column_parser, parse_ddl_file, column, column_list, column_name_table_name, comma_sep,
+    constraint, create_table_parser, default, foreign_key, function, match_char, match_string, SelectColumn,  join_list_parser,  name, schema_name_table_name, with_whitespace, ForeignKey, ParseError, Parser, join_parser, select_parser
 };
-use std::sync::Arc;
+use std::collections::HashMap;
 mod tests {
     use super::*;
 
@@ -16,6 +17,30 @@ mod tests {
             Ok(a) => println!("{:?}", a),
             Err(e) => panic!("{:?}", e),
         }
+    }
+    fn print_result<'a, A>(res: Result<A, ParseError>)
+    where
+        A: 'a + std::fmt::Debug,
+    {
+        match res {
+            Ok(a) => println!("{:?}", a),
+            Err(e) => println!("{:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_alter_column() {
+        let res = alter_table_add_column_parser().parse(
+            " ALTER TABLE public.parent ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.parent_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);",
+        );
+        process_reult(res);
     }
 
     use std::path::PathBuf;
@@ -50,23 +75,46 @@ mod tests {
         let references_parser = with_whitespace(match_string("REFERENCES"));
 
         let result = foreign_key().parse(commavals);
-        match result {
-            Ok(a) => println!("{:?}", a),
-            Err(e) => panic!("{:?}", e),
-        }
     }
 
     #[test]
-    fn default_test() {
-        let default_parser = with_whitespace(match_string("DEFAULT"))
-            .and_then(|_| {
-                with_whitespace(function())
-                    .or(with_whitespace(name()))
-                    .map(|val| Ok(val.to_string()))
-            })
-            .or(Parser::new(|input| Ok((Err("No default value"), input))));
+    fn test_column() {
+        process_reult(column().parse("action_id uuid DEFAULT gen_random_uuid() NOT NULL"));
+        process_reult(column().parse("action_user text NOT NULL"));
+        process_reult(column().parse("created_at timestamp with time zone DEFAULT now() NOT NULL"));
+        process_reult(column().parse("related_asset uuid NOT NULL"));
+        process_reult(column().parse("action_type text NOT NULL"));
 
-        process_reult(default_parser.parse("DEFAULT gen_random_uuid() NOT NULL"));
+        process_reult(comma_sep(column() ).parse("action_id uuid DEFAULT gen_random_uuid() NOT NULL,action_user text NOT NULL,created_at timestamp with time zone DEFAULT now() NOT NULL,related_asset uuid NOT NULL,action_type text NOT NULL
+"));
+    }
+
+    #[test]
+    fn test_comma_seperated_columns() {
+        let result = comma_sep(column().or(constraint())).parse(
+            " action_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    action_user text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    related_asset uuid NOT NULL,
+    action_type text NOT NULL
+",
+        );
+    }
+
+    #[test]
+    fn test_column_in_parentheses() {
+        process_reult(
+            match_char('(')
+                .and_then(move |_| comma_sep(column().or(constraint())))
+                .parse(
+                    "(action_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    action_user text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    related_asset uuid NOT NULL,
+    action_type text NOT NULL)
+",
+                ),
+        );
     }
 
     #[test]
@@ -84,6 +132,11 @@ mod tests {
     }
 
     #[test]
+
+    fn default_test() {
+        process_reult(default().parse("DEFAULT gen_random_uuid()"));
+    }
+    #[test]
     fn test_cascade() {
         process_reult(cascade().parse("ON DELETE CASCADE"));
         process_reult(cascade().parse("ON DELETE CASCADE ON UPDATE CASCADE"));
@@ -92,17 +145,7 @@ mod tests {
     }
     #[test]
     fn test_create_table_parser() {
-        let result = parse::create_table_parser()
-            .parse(" CREATE TABLE TEST ( id int PRIMARY KEY , id2 int NOT NULL ) ");
-
-        process_reult(result);
-        let psql = "CREATE TABLE public.collections ( collection_id uuid DEFAULT gen_random_uuid() NOT NULL, collection_name text NOT NULL, created_at timestamptz DEFAULT now() NOT NULL, updated_at timestamptz DEFAULT now() NOT NULL, collection_description text NOT NULL, collection_owner text NOT NULL, collection_collaborators text NULL )";
-
-        println!("{:?}", &psql);
-        let pres = create_table_parser().parse(&psql);
-
-        process_reult(pres);
-        let relative_path = "../openapi/ddl.sql";
+        let relative_path = "../server/schema.sql";
 
         // Construct the absolute path
         let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
@@ -112,14 +155,100 @@ mod tests {
         let sql = file_content.split(";");
 
         for stmt in sql {
-            let clean = stmt
-                .replace("\n", " ")
-                .replace("\t", " ")
-                .replace("  ", " ")
-                .to_string();
+            let clean = stmt.to_string();
+
+            if clean.trim_start().is_empty() {
+                continue;
+            }
+
             let parsed = create_table_parser().parse(&clean);
-            process_reult(parsed);
+            //print_result(parsed);
         }
         // Generate structs based on the JSON data
     }
+
+    #[test]
+    fn test_select_parser() {
+        let relative_path = "../server/schema.sql";
+
+        // Construct the absolute path
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+        let file_path = PathBuf::from(manifest_dir).join(relative_path);
+        // Read the JSON file
+        let file_content = fs::read_to_string(file_path).expect("Unable to read file");
+        let sql = "select a.asset_id, at.name, av.value from public.entityattributes e join public.assets a on e.eid = a.asset_id join public.attributevalues av on av.aid = e.aid join public.attributes at on at.id = av.aid";
+
+
+
+            let result = select_column_parser().parse("AV.ID AS ID2");
+
+        match result {
+            Ok(a) => assert!(a.0.name == "ID"),
+            _ => panic!("Parsing failed"),
+        }
+
+
+        let column_alias_list = comma_sep(select_column_parser());
+
+        let result  = column_alias_list.parse("AV.ID, AV.ID as ID1");
+
+        match result {
+            Ok(a) => {
+                    assert!(a.0[0].name == "ID"); 
+                    assert!(a.0[1].name == "ID");
+                    assert!(a.0[1].table_name == Some("AV".to_string()));
+            },
+            _ => panic!("Parsing failed"),
+        }
+
+
+
+        let res = join_list_parser().parse("on ev.id = ac.id2 and ev.id2 = ac.id");
+
+        match res {
+            Ok(a) => {
+                assert!(a.0[0].right_key.table_name == "ac")
+            },
+            _ => panic!("Parsing failed")
+        }
+
+
+
+
+
+        let res = select_parser().parse("select a.id, b.id as id2 FROM public.test a join public.test b on a.id = b.id and a.test = b.test join public.test c on c.id = a.id");
+
+        match res {
+            Ok(a) => {
+                assert!(a.0.table_identifier.alias == Some("a".to_string()) );
+                assert!(a.0.table_identifier.identifier.name == "test" );
+                print!("{:?}", a.0);
+                assert!(a.0.joins.len()==2 );
+            },
+            Err(e) => panic!("{}", e)
+        }
+
+    }
+
+#[test]
+    pub fn test_tree() {
+
+        let table_vec  = parse_ddl_file("../server/schema.sql".to_string());
+        let sql = "select a.asset_id, at.name, av.value as value FROM public.entityattributes e join public.assets a on e.eid = a.asset_id join public.attributevalues av on av.aid = e.aid join public.attributes at on at.id = av.aid";
+        let select = match select_parser().parse(sql){
+            Ok(a) => { println!("{:?}", a.0); a.0},
+            Err(e) => panic!("{}", e)
+        };
+
+        
+
+        let mut table_hash = HashMap::new();
+        for table in table_vec{
+            table_hash.insert(table.0.name.clone(), table.0.clone());
+        }
+        let mut hierachy = build_table_hierarchy(&select, &table_hash);
+
+        hierachy.print();
+    }
+
 }
