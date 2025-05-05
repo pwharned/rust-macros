@@ -1,0 +1,222 @@
+1,4,Solution Templates
+2,4,Technical Documentation
+3,4,Architectural Blueprint
+4,4,Code Asset
+5,4,Delivery Methodology
+6,4,Demo
+7,4,Not Asset Type-specific
+8,4,Proof of eXperience (PoX)
+9,4,RFI/RFP
+10,1,Cloud
+11,1,IT Automation & App Modernization
+12,1,Sustainability
+13,1,Data & AI
+14,1,Systems
+15,1,Security
+16,1,Not Brand-specific
+17,2,Cloud
+18,2,Application Runtimes
+19,2,Asset Management
+20,2,Data Fabric
+21,2,Generative AI + Assistants
+22,2,Data Management
+23,2,IT Automation
+24,2,Sterling Supply Chain
+25,2,IBM Power
+26,2,Business Automation
+27,2,AI Governance & RegTech
+28,2,Integration
+29,2,Data Security
+30,2,Identity and Device Management
+31,2,Threat
+32,2,Not Practice-specific
+33,2,Endpoint Security
+34,2,Sterling Data Exchange 
+35,2,Planning & Business Analytics
+36,2,Zero Trust
+37,2,IBM zStack
+38,2,AI and Cross Brand
+39,2,IBM Storage
+40,2,Generative AI & Assistants
+41,3,Event Automation
+42,3,App Connect
+43,3,QRadar Premier Apps
+44,3,QRadar SIEM
+45,3,QRoC (QRadar on Cloud)
+46,3,IBM AIX
+47,3,watsonx.data
+48,3,Watsonx.ai
+49,3,Sterling Order Management (OMS)
+50,3,Netezza
+51,3,Cloud Pak for Business Automation
+52,3,Workflow Automation
+53,3,Decision Management
+54,3,Filenet Content Manager (FCM)
+55,3,watsonx Assistant
+56,3,Instana
+57,3,CP4AIOps
+58,3,Databand
+59,3,Watson Machine Learning
+60,3,Watson Studio
+61,3,Watson Embedded AI libraries
+62,3,Watson Speech to Text
+63,3,Watson Text to Speech
+64,3,Cloud Pak for Integration
+65,3,TRIRIGA
+66,3,DataStage
+67,3,Maximo
+68,3,QRadar SOAR
+69,3,API Connect
+70,3,Watson APIs
+71,3,Cloud Pak for Data
+72,3,Other cloud product
+73,3,IBM Knowledge Cataloge
+74,3,DB2 for IBM i
+75,3,IBM i
+76,3,MQ
+77,3,Turbonomic
+78,3,DataPower
+79,3,Manta
+80,3,Process Mining
+81,3,Db2 Warehouse
+82,3,Db2
+83,3,WebSphere Application Server
+84,3,Not product-specific
+85,3,watsonx.governance
+86,3,Db2 Mirror for IBM i
+87,3,Business Automation Open Editions
+88,3,Cognos Analytics
+89,3,Robotic Process Automation (RPA)
+90,3,IBM Maximo Predict
+91,3,IBM Maximo Visual Inspection (MVI)
+92,3,IBM Power Shared Utility Capacity
+93,3,IBM Power Virtual Server
+94,3,IBM Power Enterprise Pools
+95,3,IBM Power AIX/Linux
+96,3,IBM PowerVM
+97,3,IBM Power Systems
+98,3,Red Hat Ansible Automation
+99,3,IBM Power Private Cloud Rack for Db2 Warehouse
+100,3,IBM Storage Scale and Storage Scale System
+101,3,IBM FlashSystem
+102,3,Application Modernization on IBM Power
+103,3,Linux
+104,3,Red Hat OpenShift
+105,3,Data and AI on IBM Power
+106,3,System Automation (SA)
+107,3,QRadar Suite
+108,3,HPCS - Hyper protect Crypto Service
+109,3,zOS 
+110,3,Db2 LUW
+111,3,Zero Trust
+112,3,Guardium Data Protection (GDP)
+113,3,MaaS360
+114,3,IBM Security Verify Access
+115,3,IBM Security Verify - Identity Management
+116,3,IBM Security  MaaS360
+117,3,Master Data Management
+118,3,Match360
+119,3,Oracle
+120,3,IBM Cloud Paks
+121,3,Cloud Pak for Applications
+122,3,Cloud Pak System
+123,3,Content Manager (CM8)
+124,3,IBM Application Discovery and Delivery Intelligence (ADDI)
+125,3,Capture
+126,3,wasonx.Discovery
+127,3,Security and Compliance Center
+128,3,watsonx.orchestrate
+129,3,Watson Query
+130,3,IBM Z Operational Log and Data Analytics
+131,3,IBM Security Verify Governance
+132,3,Infrastructure Automation
+133,3,IBM Concert
+134,3,WebSphere Hybrid Edition
+135,3,WebSphere Liberty
+136,3,Guardium Insights (GI)
+137,3,Guardium Data Encryption (GDE)
+138,3,IBM Security Verify Privilege
+139,3,"IBM Power Security for AIX, Linux"
+140,3,IBM Power Security for IBM i
+141,3,zVM 
+142,3,IBM PowerHA SystemMirror for IBM i
+143,3,Guardium Vulnerability Assessment (VA)
+144,3,IBM Security Discovery & Classify  (ISDC)
+145,3,IBM Cloud Satellite
+146,3,Sterling Intelligent Promising (SIP)
+147,3,IBM DS8000
+148,3,GDPS
+149,3,"IKS, ROKS & Cloud Native"
+150,3,Network
+151,3,"Linux OS (Red Hat, SUSE, Ubuntu, KVM)"
+152,3,DevOps Automation
+153,3,NOI (Netcool Operations Insights)
+154,3,Netcool
+155,3,Engineering Lifecycle Management (ELM)
+156,3,Watson Discovery
+157,3,IBM Security Verify Directory
+158,3,CDC (Data Replication)
+159,3,watsonx Code Assistant for Ansible
+160,3,OpenPages
+161,3,Content Manager on Demand (CMOD)
+162,3,Watsonx Code Assistant for Z (WCA4Z)
+163,3,"IWA (IBM Workload Automation) - also includes TWS, IWS"
+164,3,Not Product-specific
+165,3,IBM Fusion and IBM Fusion HCI
+166,3,WebSphere Automation
+167,3,IBM Storage Ceph and Ceph Ready Node
+168,3,IBM Storage Defender Data Protect Ready Node
+169,3,Envizi
+170,3,watson discovery
+171,3,Security on Z
+172,3,webMethods Integration
+173,5,Not Offering-specific
+174,5,Assess
+175,5,Architect/Plan
+176,5,Build
+177,5,Custom
+178,5, Install/Provision/Configure
+179,5,Migrate
+180,5,Perform
+181,5,Essential Management
+182,5,Expertise Connect
+183,5,Learn Interactive
+184,6,Americas
+185,6,EMEA
+186,6,APAC
+187,6,Japan
+188,6,World Wide
+189,7,US
+190,7,Canada
+191,7,Latin America
+192,7,ASEANZK
+193,7,ISA
+194,7,GCG
+195,7,DACH
+196,7,France
+197,7,Italy
+198,7,MEA
+199,7,NCEE
+200,7,SPGI
+201,7,UKI
+202,7,Japan
+203,7,World Wide
+204,8,True
+205,8,False
+206,9,True
+207,9,False
+208,3,watsonx.ai
+209,3,High Performance Computing
+210,3,Analytics Content Hub
+211,3,Application Delivery Foundation for z/OS (ADFz)
+212,1,test
+213,1,1
+214,1,test
+215,1,test
+216,1,test
+217,1,test
+218,1,test
+219,1,test
+220,1,test
+221,1,test
+222,1,test

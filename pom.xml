@@ -1,0 +1,221 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- Note: Don't add rust-maven-plugin to <dependencies>. -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.ibm</groupId>
+    <artifactId>tel</artifactId>
+        <version>1.2.0</version>
+    <packaging>jar</packaging>
+    <repositories>
+        <repository>
+            <id>maven-repo</id>
+            <url>file://${project.basedir}/target/rs</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.questdb</groupId>
+            <artifactId>jar-jni</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+  </dependencies>
+<properties>
+   <maven.compiler.source>11</maven.compiler.source>
+   <maven.compiler.target>11</maven.compiler.target>
+ </properties>
+  
+
+    <scm>
+        <url>https://github.com/questdb/rust-maven-plugin</url>
+        <connection>scm:git:https://github.com/questdb/rust-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/questdb/rust-maven-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+  <build>
+
+    <!--
+           <resources>
+       <resource>
+         <directory>${project.basedir}/resources/bin</directory>
+         <includes>
+           <include>*</include>
+         </includes>
+       </resource>
+               <resource>
+        <directory>${project.basedir}/resources/static</directory>
+          <includes>
+           <include>*</include>
+         </includes>
+       
+               </resource>
+     </resources>
+    -->
+    <plugins>
+
+<plugin>
+    <groupId>org.codehaus.gmaven</groupId>
+    <artifactId>gmaven-plugin</artifactId>
+    <version>1.4</version>
+    <executions>
+        <execution>
+            <phase>compile</phase>
+            <goals>
+                <goal>execute</goal>
+            </goals>
+            <configuration>
+                <source>
+
+def cargo = "which cargo"
+def cargoPath = project.basedir.getAbsolutePath() + "/target/rs/cargo/bin/cargo"
+
+try {
+    def process = cargo.execute()
+    def output = process.text.trim()
+    if (output != "") {
+        cargoPath = output
+    }
+} catch (Exception e) {
+    // ignore exception, cargo is not available
+}
+
+
+project.properties.setProperty('cargoPath', cargoPath)
+
+
+
+                  def command = project.properties.script
+                  def projectDir = project.basedir
+                  def fileDir = projectDir.getAbsolutePath() + "/target/classes/server"
+                  File file = new File(fileDir )
+                  def skipRustBuild = file.exists().toString()
+
+                    println "setting skipRustBuild to: " + skipRustBuild 
+
+                    project.properties.setProperty('skipRustBuild',skipRustBuild)
+
+                </source>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+        <!---plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.2.0</version>
+            <configuration>
+                <resources>
+                    <resource>
+                        <directory>static</directory>
+                        <targetPath>static</targetPath>
+                    </resource>
+                </resources>
+            </configuration>
+        </plugin -->
+
+
+        <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>3.5.0</version>
+    <executions>
+      <execution>
+        <id>rust</id>
+        <phase>compile</phase>
+        <goals>
+          <goal>exec</goal>
+        </goals>
+      <configuration>
+      <executable>./rs.sh</executable>
+      <arguments><argument>${project.basedir}/target/rs</argument></arguments>
+    </configuration>
+      </execution>
+    </executions>
+    <configuration>
+      <executable>${exec.executable}</executable>
+    </configuration>
+  </plugin>
+
+<plugin>
+ <groupId>org.apache.maven.plugins</groupId>
+ <artifactId>maven-shade-plugin</artifactId>
+ <version>3.5.2</version>
+ <executions>
+  <execution>
+   <phase>package</phase>
+   <goals>
+    <goal>shade</goal>
+   </goals>
+   <configuration>
+	   <minimizeJar>false</minimizeJar>
+                <filters>
+                    <filter>
+                        <artifact>*:*</artifact>
+                        <excludes>
+                            <exclude>META-INF/*.SF</exclude>
+                            <exclude>META-INF/*.DSA</exclude>
+                            <exclude>META-INF/*.RSA</exclude>
+                        </excludes>
+                    </filter>
+                </filters> 
+    <shadedArtifactAttached>true</shadedArtifactAttached>
+    <shadedClassifierName>allinone</shadedClassifierName>
+    <outputFile>${project.build.directory}/${project.artifactId}-${project.version}.jar</outputFile>
+    
+    <artifactSet>
+     <includes>
+      <include>*:*</include>
+     </includes>
+    </artifactSet>
+    <transformers>
+      <transformer
+       implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+       <resource>reference.conf</resource>
+      </transformer>
+      <transformer
+       implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+       <manifestEntries>
+        <Main-Class>com.ibm.tel.Main</Main-Class>
+       </manifestEntries>
+      </transformer>
+    </transformers>
+   </configuration>
+  </execution>
+ </executions>
+</plugin>
+
+            <plugin>
+                <groupId>org.questdb</groupId>
+                <artifactId>rust-maven-plugin</artifactId>
+                <version>1.2.0</version>
+                <executions>
+                  
+                    <execution>
+                      <id>server</id>
+                        <goals>
+                          <goal>build</goal>
+                        </goals>
+                        <configuration>
+                          <skip>${skipRustBuild}</skip>
+                            <environmentVariables>
+                              <PATH>${project.basedir}/target/rs/cargo/bin:${env.PATH}</PATH>
+                              <CARGO_HOME>${project.basedir}/target/rs/cargo</CARGO_HOME>
+                              <RUSTUP_HOME>${project.basedir}/target/rs/</RUSTUP_HOME>
+                                <RUSTUP_USE_CURL>1</RUSTUP_USE_CURL>
+                                <RUST_BACKTRACE>full</RUST_BACKTRACE>
+                            </environmentVariables>
+              <cargoPath>${cargoPath} </cargoPath>
+                          <release>true</release>
+                          <path>src/main/rs/server</path>
+                          <copyTo>${project.basedir}/target/classes</copyTo>
+                            <copyWithPlatformDir>false</copyWithPlatformDir>
+                                <mainClass>com.ibm.tel.Main</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

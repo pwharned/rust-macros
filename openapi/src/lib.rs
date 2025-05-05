@@ -610,7 +610,13 @@ struct Property {
     type_: Option<String>,
     format: Option<String>,
     properties: Option<std::collections::HashMap<String, Property>>,
-    items: Option<Box<Property>>,
+    items: Option<Item>, // Add other fields as needed
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct Item {
+    #[serde(rename = "type")]
+    type_: Option<String>,
+    properties: Option<std::collections::HashMap<String, Property>>,
     // Add other fields as needed
 }
 
@@ -663,7 +669,7 @@ pub fn generate_structs_from_file_v2(attr: TokenStream) -> TokenStream {
                 let fields = generate_fields(&struct_def, &mut output);
 
                 let new_struct = quote! {
-                    #[derive(Deserialize, Debug,Serialize)]
+                    #[derive(Deserialize, Debug,Serialize,Clone)]
                     pub struct #struct_name {
                         #(#fields)*
                     }
@@ -716,14 +722,14 @@ fn generate_fields(
                     false => syn::parse_str("Option<bool>").expect("Invalid type"),
                 },
 
-                "object" | "array" => {
+                "object" => {
                     // Recursively generate the nested struct
                     let nested_struct_name =
                         syn::Ident::new(&format!("{}", field_name), proc_macro2::Span::call_site());
                     let nested_fields = generate_fields_from_properties(&field.properties, output);
 
                     let nested_struct = quote! {
-                        #[derive(Deserialize, Debug,Serialize)]
+                        #[derive(Deserialize, Debug,Serialize,Clone)]
                         pub struct #nested_struct_name {
                             #(#nested_fields)*
                         }
@@ -738,14 +744,64 @@ fn generate_fields(
                             .expect("Invalid type"),
                     }
                 }
+                "array" => {
+                    // Recursively generate the nested struct
+                    let nested_struct_name =
+                        syn::Ident::new(&format!("{}", field_name), proc_macro2::Span::call_site());
+                    let nested_struct_items_type_name = syn::Ident::new(
+                        &format!("{}Items", field_name),
+                        proc_macro2::Span::call_site(),
+                    );
+                    let nested_struct_items_name = syn::Ident::new(
+                        &format!("{}_items", field_name),
+                        proc_macro2::Span::call_site(),
+                    );
+
+                    let items = field.items.clone().unwrap();
+
+                    let properties = items.clone().properties;
+                    let t: &str = &items.type_.unwrap();
+                    let ty = match t {
+                        "string" => syn::parse_str("Vec<String>").expect("invalid type"),
+                        "number" | "integer" => syn::parse_str("Vec<i32>").expect("invalid type"),
+                        "object" => {
+                            let nested_fields =
+                                generate_fields_from_properties(&properties, output);
+
+                            let item_struct = quote! {
+                                #[derive(Deserialize, Debug,Serialize, Clone)]
+                                pub struct #nested_struct_items_type_name {
+                                    #(#nested_fields)*
+                                }
+                            };
+                            output.extend(item_struct);
+                            nested_struct_items_type_name
+                        }
+                        _ => todo!(),
+                    };
+
+                    match is_required {
+                        true => syn::parse_str(&format!("Vec<{}>", ty)).expect("Invalid type"),
+                        false => {
+                            syn::parse_str(&format!("Option<Vec<{}>>", ty)).expect("Invalid type")
+                        }
+                    }
+                }
+
                 _ => panic!(
                     "{}",
                     format!("Unsupported type {}", field_type_str.as_str())
                 ),
             };
+            let field_def = match is_required {
+                true => quote! {
+                    pub #field_name: #field_ty,
+                },
 
-            let field_def = quote! {
-                pub #field_name: #field_ty,
+                false => quote! {
+                    #[serde(skip_serializing_if = "Option::is_none")]
+                    pub #field_name: #field_ty,
+                },
             };
 
             fields.push(field_def);
@@ -760,10 +816,10 @@ fn generate_fields_from_properties(
     output: &mut proc_macro2::TokenStream,
 ) -> Vec<proc_macro2::TokenStream> {
     let mut fields = Vec::new();
-    let is_required = true;
+    let is_required = false;
     if let Some(properties) = &properties {
-        for (field_name, field) in properties {
-            let field_name = syn::Ident::new(field_name, proc_macro2::Span::call_site());
+        for (name, field) in properties {
+            let field_name = syn::Ident::new(name, proc_macro2::Span::call_site());
 
             let field_type_str = field.type_.as_ref().unwrap();
             let field_ty: syn::Type = match field_type_str.as_str() {
@@ -786,14 +842,15 @@ fn generate_fields_from_properties(
                     false => syn::parse_str("Option<bool>").expect("Invalid type"),
                 },
 
-                "object" | "array" => {
+                "object" => {
                     // Recursively generate the nested struct
+
                     let nested_struct_name =
                         syn::Ident::new(&format!("{}", field_name), proc_macro2::Span::call_site());
                     let nested_fields = generate_fields_from_properties(&field.properties, output);
 
                     let nested_struct = quote! {
-                        #[derive(Deserialize, Debug,Serialize)]
+                        #[derive(Deserialize, Debug,Serialize,Clone)]
                         pub struct #nested_struct_name {
                             #(#nested_fields)*
                         }
@@ -803,14 +860,66 @@ fn generate_fields_from_properties(
 
                     syn::parse_str(&format!("{}", nested_struct_name)).expect("Invalid type")
                 }
+
+                "array" => {
+                    // Recursively generate the nested struct
+                    let nested_struct_name =
+                        syn::Ident::new(&format!("{}", field_name), proc_macro2::Span::call_site());
+                    let nested_struct_items_type_name = syn::Ident::new(
+                        &format!("{}Items", field_name),
+                        proc_macro2::Span::call_site(),
+                    );
+                    let nested_struct_items_name = syn::Ident::new(
+                        &format!("{}_items", field_name),
+                        proc_macro2::Span::call_site(),
+                    );
+
+                    let items = field.items.clone().unwrap();
+
+                    let properties = items.clone().properties;
+                    let t: &str = &items.type_.unwrap();
+                    let ty = match t {
+                        "string" => syn::parse_str("String").expect("invalid type"),
+                        "number" | "integer" => syn::parse_str("i32").expect("invalid type"),
+                        "object" => {
+                            let nested_fields =
+                                generate_fields_from_properties(&properties, output);
+
+                            let item_struct = quote! {
+                                #[derive(Deserialize, Debug,Serialize, Clone)]
+                                pub struct #nested_struct_items_type_name {
+                                    #(#nested_fields)*
+                                }
+                            };
+                            output.extend(item_struct);
+                            nested_struct_items_type_name
+                        }
+                        _ => todo!(),
+                    };
+
+                    match is_required {
+                        true => syn::parse_str(&format!("Vec<{}>", ty)).expect("Invalid type"),
+                        false => {
+                            syn::parse_str(&format!("Option<Vec<{}>>", ty)).expect("Invalid type")
+                        }
+                    }
+                }
+
                 _ => panic!(
                     "{}",
                     format!("Unsupported type {}", field_type_str.as_str())
                 ),
             };
 
-            let field_def = quote! {
-                pub #field_name: #field_ty,
+            let field_def = match is_required {
+                true => quote! {
+                    pub #field_name: #field_ty,
+                },
+
+                false => quote! {
+                    #[serde(skip_serializing_if = "Option::is_none")]
+                    pub #field_name: #field_ty,
+                },
             };
 
             fields.push(field_def);

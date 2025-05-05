@@ -171,12 +171,12 @@
                 "example": "0.5"
               },
               "max_new_tokens": {
-                "type": "number",
+                "type": "integer",
                 "description": "The maximum number of new tokens to be generated.",
                 "example": "150"
               },
               "min_new_tokens": {
-                "type": "number",
+                "type": "integer",
                 "description": "The minimum number of new tokens to be generated.",
                 "example": "50"
               },

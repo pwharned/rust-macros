@@ -1,0 +1,30 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = {version = "4.10.2", default-features=false,features = ["macros"
+]}
+actix-cors = "0.6"
+actix-http = {version = "3.10.0", default-features=false,features = [
+    "http2",
+    "ws"
+]}
+actix-files = {version= "0.6", default-features=false}
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+macros = { path = "../macros" }
+sqlx = { version = "0.8", features = [ "runtime-tokio","postgres", "tls-native-tls", "uuid" ] }
+schemars = { package = "apistos-schemars", version = "0.8" }
+apistos = "0.4"
+async-trait = "0.1.83"
+actix-rt = "2.10"
+
+[dev-dependencies] 
+actix-http-test = "3.2.0"
+
+[profile.release]
+opt-level = 3              # Use slightly better optimizations.

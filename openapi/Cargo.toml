@@ -17,8 +17,7 @@ proc-macro2 = "1.0"
 serde_json = "1.0.132"
 regex = "1.11.1"
 parse = { path = "../parser" }
-
-
+actix-web = "4.0.0"
 [lib]
 proc-macro = true
 

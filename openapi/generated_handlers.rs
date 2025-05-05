@@ -33,6 +33,22 @@ impl From < serde_json :: Error > for ApiError
 } impl ApiClient
 {
     async fn
+    post_ml_v1_text_generation(& self, token : String, version : String,
+    textgenrequest : TextGenRequest,) -> Result < Value, ApiError >
+    {
+        let url = format! ("{}/ml/v1/text/generation", self.get_host()); let
+        client = Client :: new(); let params = [("version", version)]; let
+        response =
+        client.post(url).header("Authorization", format!
+        ("Bearer: {}",
+        token)).json(& textgenrequest).query(& params).send().await ? ; let
+        mut bytes = response.bytes().await.unwrap(); match serde_json ::
+        from_slice :: < Value > (& bytes)
+        { Ok(data) => Ok(data), Err(e) => Err(ApiError :: from(e)) }
+    }
+} impl ApiClient
+{
+    async fn
     post_ml_v1_text_generation_stream(& self, token : String, version :
     String, textgenrequest : TextGenRequest,) -> Result < String, ApiError >
     {
@@ -58,22 +74,6 @@ impl From < serde_json :: Error > for ApiError
             let vec_u8 = slice.to_vec(); String ::
             from_utf8_lossy(& vec_u8).to_string()
         }).collect(); let data = strings.join(""); Ok(data)
-    }
-} impl ApiClient
-{
-    async fn
-    post_ml_v1_text_generation(& self, token : String, version : String,
-    textgenrequest : TextGenRequest,) -> Result < Value, ApiError >
-    {
-        let url = format! ("{}/ml/v1/text/generation", self.get_host()); let
-        client = Client :: new(); let params = [("version", version)]; let
-        response =
-        client.post(url).header("Authorization", format!
-        ("Bearer: {}",
-        token)).json(& textgenrequest).query(& params).send().await ? ; let
-        mut bytes = response.bytes().await.unwrap(); match serde_json ::
-        from_slice :: < Value > (& bytes)
-        { Ok(data) => Ok(data), Err(e) => Err(ApiError :: from(e)) }
     }
 }mod tests
 {

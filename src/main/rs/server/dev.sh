@@ -1,0 +1,1 @@
+export DATABASE_URL="postgres://ibm_cloud_a6045e49_b170_4459_9b25_9a757f2a801a:23d925433cd80f58337d2f0b191cd84ff6d7bd79cd95fcf8420fe47369ec6287@99621333-c418-4d9d-9bab-c2f6ec3e838d.blrrvkdw0thh68l98t20.databases.appdomain.cloud:31028/ibmclouddb"
