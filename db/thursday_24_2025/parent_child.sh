@@ -1,5 +1,0 @@
-psql $DATABASE_URL -c "create table mappings (parent text, child text);"
-psql $DATABASE_URL -c "\copy mappings(parent, child) from 'mappings.csv' with(format csv, delimiter ':');"
-psql $DATABASE_URL -c "insert into relationship(paid, caid, pavid,cavid) select av.aid as paid,av2.aid as caid, av.id as pavid, av2.id as cavid from mappings m join attributevalues av on av.value = parent join attributevalues av2 on av2.value = child where av.id!=av2.id;"
-psql $DATABASE_URL -c "delete from relationship where caid !=2 or paid !=1;"
-psql $DATABASE_URL -c "drop table mappings;"

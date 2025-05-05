@@ -1,6 +1,0 @@
-psql $DATABASE_URL -c "update attributevalues set value = 'Infrastructure' where value = 'Systems' and aid = 1;"
-psql $DATABASE_URL -c "update attributevalues set value = 'Infrastructure' where value = 'Cloud' and aid = 1;"
-psql $DATABASE_URL -c "update attributevalues set value = 'Data' where value = 'Data & AI' and aid = 1;"
-psql $DATABASE_URL -c "update attributevalues set value = 'Automation' where value = 'Sustainability' and aid = 1;"
-psql $DATABASE_URL -c "update attributevalues set value = 'Automation' where value = 'Security' and aid = 1;"
-psql $DATABASE_URL -c "update attributevalues set value = 'Automation' where value = 'IT Automation & App Modernization' and aid = 1;"
